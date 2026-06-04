@@ -2,7 +2,6 @@
 // Copyright 2025-2026 Mindful Software LLC d/b/a Dartastic.io, All rights reserved.
 
 import 'package:dartastic_opentelemetry/dartastic_opentelemetry.dart';
-import 'package:dartastic_opentelemetry_api/dartastic_opentelemetry_api.dart';
 
 import 'otel_saucelabs_suppression.dart';
 
@@ -60,60 +59,76 @@ Future<T> tracedSauceLabs<T>({
   final t = tracer ?? OTel.tracerProvider().getTracer('otel_saucelabs');
   final span = t.startSpan('saucelabs $operation', kind: SpanKind.client);
   try {
-    span.setStringAttribute('rpc.system', 'saucelabs');
+    span.addAttributes(
+        OTel.attributes([OTel.attributeString('rpc.system', 'saucelabs')]));
     final r = await invoke();
     final res = r.result;
     if (res != null) {
       if (res.sessionId != null) {
-        span.setStringAttribute('saucelabs.session.id', res.sessionId!);
+        span.addAttributes(OTel.attributes(
+            [OTel.attributeString('saucelabs.session.id', res.sessionId!)]));
       }
       if (res.buildName != null) {
-        span.setStringAttribute('cicd.pipeline.run.name', res.buildName!);
+        span.addAttributes(OTel.attributes(
+            [OTel.attributeString('cicd.pipeline.run.name', res.buildName!)]));
       }
       if (res.browser != null) {
-        span.setStringAttribute('browser.name', res.browser!);
+        span.addAttributes(OTel.attributes(
+            [OTel.attributeString('browser.name', res.browser!)]));
       }
       if (res.browserVersion != null) {
-        span.setStringAttribute('browser.version', res.browserVersion!);
+        span.addAttributes(OTel.attributes(
+            [OTel.attributeString('browser.version', res.browserVersion!)]));
       }
       if (res.os != null) {
-        span.setStringAttribute('os.name', res.os!);
+        span.addAttributes(
+            OTel.attributes([OTel.attributeString('os.name', res.os!)]));
       }
       if (res.osVersion != null) {
-        span.setStringAttribute('os.version', res.osVersion!);
+        span.addAttributes(OTel.attributes(
+            [OTel.attributeString('os.version', res.osVersion!)]));
       }
       if (res.device != null) {
-        span.setStringAttribute('device.model.name', res.device!);
+        span.addAttributes(OTel.attributes(
+            [OTel.attributeString('device.model.name', res.device!)]));
       }
       if (res.testName != null) {
-        span.setStringAttribute('test.name', res.testName!);
+        span.addAttributes(OTel.attributes(
+            [OTel.attributeString('test.name', res.testName!)]));
       }
       if (res.testStatus != null) {
-        span.setStringAttribute('test.status', res.testStatus!);
+        span.addAttributes(OTel.attributes(
+            [OTel.attributeString('test.status', res.testStatus!)]));
       }
       if (res.tunnelId != null) {
-        span.setStringAttribute('saucelabs.tunnel.id', res.tunnelId!);
+        span.addAttributes(OTel.attributes(
+            [OTel.attributeString('saucelabs.tunnel.id', res.tunnelId!)]));
       }
       if (res.region != null) {
-        span.setStringAttribute('saucelabs.region', res.region!);
+        span.addAttributes(OTel.attributes(
+            [OTel.attributeString('saucelabs.region', res.region!)]));
       }
       if (res.durationMs != null) {
-        span.setIntAttribute('test.duration', res.durationMs!);
+        span.addAttributes(OTel.attributes(
+            [OTel.attributeInt('test.duration', res.durationMs!)]));
       }
       if (res.statusCode != null) {
-        span.setIntAttribute('http.response.status_code', res.statusCode!);
+        span.addAttributes(OTel.attributes(
+            [OTel.attributeInt('http.response.status_code', res.statusCode!)]));
       }
       if (res.errorCode != null) {
-        span.setStringAttribute('saucelabs.error.code', res.errorCode!);
+        span.addAttributes(OTel.attributes(
+            [OTel.attributeString('saucelabs.error.code', res.errorCode!)]));
       }
-      final fail =
-          res.errorCode != null ||
+      final fail = res.errorCode != null ||
           (res.statusCode != null && res.statusCode! >= 400);
       if (fail) {
-        span.setStringAttribute(
-          ErrorResource.errorType.key,
-          res.errorCode ?? 'saucelabs.error',
-        );
+        span.addAttributes(OTel.attributes([
+          OTel.attributeString(
+            ErrorResource.errorType.key,
+            res.errorCode ?? 'saucelabs.error',
+          )
+        ]));
         span.setStatus(SpanStatusCode.Error, res.errorMessage);
       }
     }

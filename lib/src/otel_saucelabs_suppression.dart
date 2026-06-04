@@ -12,4 +12,5 @@ T runWithoutSauceLabsInstrumentation<T>(T Function() body) =>
 
 Future<T> runWithoutSauceLabsInstrumentationAsync<T>(
   Future<T> Function() body,
-) => runZoned(body, zoneValues: {_key: true});
+) =>
+    runZoned(body, zoneValues: {_key: true});
