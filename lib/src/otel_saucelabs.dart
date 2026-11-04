@@ -1,11 +1,12 @@
-// Licensed under the Dartastic Pro Software License Agreement.
+// Licensed under the Apache License, Version 2.0
 // Copyright 2025-2026 Mindful Software LLC d/b/a Dartastic.io, All rights reserved.
 
-import 'package:dartastic_opentelemetry/dartastic_opentelemetry.dart';
+import 'package:dartastic_opentelemetry_api/dartastic_opentelemetry_api.dart';
 
 import 'otel_saucelabs_suppression.dart';
 
 class SauceLabsResult {
+  /// Creates a result.
   const SauceLabsResult({
     this.sessionId,
     this.buildName,
@@ -41,8 +42,13 @@ class SauceLabsResult {
   final String? errorMessage;
 }
 
+/// What a traced call returned: the value for the caller plus fields
+/// recorded on the span.
 class SauceLabsCallResult<T> {
+  /// Creates a call result.
   const SauceLabsCallResult({required this.value, this.result});
+
+  /// The value returned to the caller.
   final T value;
   final SauceLabsResult? result;
 }
@@ -50,82 +56,84 @@ class SauceLabsCallResult<T> {
 Future<T> tracedSauceLabs<T>({
   required String operation,
   required Future<SauceLabsCallResult<T>> Function() invoke,
-  Tracer? tracer,
+  APITracer? tracer,
 }) async {
   if (sauceLabsInstrumentationSuppressed()) {
     final r = await invoke();
     return r.value;
   }
-  final t = tracer ?? OTel.tracerProvider().getTracer('otel_saucelabs');
+  final t = tracer ?? OTelAPI.tracerProvider().getTracer('otel_saucelabs');
   final span = t.startSpan('saucelabs $operation', kind: SpanKind.client);
   try {
-    span.addAttributes(
-        OTel.attributes([OTel.attributeString('rpc.system', 'saucelabs')]));
+    span.addAttributes(OTelAPI.attributes(
+        [OTelAPI.attributeString('rpc.system', 'saucelabs')]));
     final r = await invoke();
     final res = r.result;
     if (res != null) {
       if (res.sessionId != null) {
-        span.addAttributes(OTel.attributes(
-            [OTel.attributeString('saucelabs.session.id', res.sessionId!)]));
+        span.addAttributes(OTelAPI.attributes(
+            [OTelAPI.attributeString('saucelabs.session.id', res.sessionId!)]));
       }
       if (res.buildName != null) {
-        span.addAttributes(OTel.attributes(
-            [OTel.attributeString('cicd.pipeline.run.name', res.buildName!)]));
+        span.addAttributes(OTelAPI.attributes([
+          OTelAPI.attributeString('cicd.pipeline.run.name', res.buildName!)
+        ]));
       }
       if (res.browser != null) {
-        span.addAttributes(OTel.attributes(
-            [OTel.attributeString('browser.name', res.browser!)]));
+        span.addAttributes(OTelAPI.attributes(
+            [OTelAPI.attributeString('browser.name', res.browser!)]));
       }
       if (res.browserVersion != null) {
-        span.addAttributes(OTel.attributes(
-            [OTel.attributeString('browser.version', res.browserVersion!)]));
+        span.addAttributes(OTelAPI.attributes(
+            [OTelAPI.attributeString('browser.version', res.browserVersion!)]));
       }
       if (res.os != null) {
         span.addAttributes(
-            OTel.attributes([OTel.attributeString('os.name', res.os!)]));
+            OTelAPI.attributes([OTelAPI.attributeString('os.name', res.os!)]));
       }
       if (res.osVersion != null) {
-        span.addAttributes(OTel.attributes(
-            [OTel.attributeString('os.version', res.osVersion!)]));
+        span.addAttributes(OTelAPI.attributes(
+            [OTelAPI.attributeString('os.version', res.osVersion!)]));
       }
       if (res.device != null) {
-        span.addAttributes(OTel.attributes(
-            [OTel.attributeString('device.model.name', res.device!)]));
+        span.addAttributes(OTelAPI.attributes(
+            [OTelAPI.attributeString('device.model.name', res.device!)]));
       }
       if (res.testName != null) {
-        span.addAttributes(OTel.attributes(
-            [OTel.attributeString('test.name', res.testName!)]));
+        span.addAttributes(OTelAPI.attributes(
+            [OTelAPI.attributeString('test.name', res.testName!)]));
       }
       if (res.testStatus != null) {
-        span.addAttributes(OTel.attributes(
-            [OTel.attributeString('test.status', res.testStatus!)]));
+        span.addAttributes(OTelAPI.attributes(
+            [OTelAPI.attributeString('test.status', res.testStatus!)]));
       }
       if (res.tunnelId != null) {
-        span.addAttributes(OTel.attributes(
-            [OTel.attributeString('saucelabs.tunnel.id', res.tunnelId!)]));
+        span.addAttributes(OTelAPI.attributes(
+            [OTelAPI.attributeString('saucelabs.tunnel.id', res.tunnelId!)]));
       }
       if (res.region != null) {
-        span.addAttributes(OTel.attributes(
-            [OTel.attributeString('saucelabs.region', res.region!)]));
+        span.addAttributes(OTelAPI.attributes(
+            [OTelAPI.attributeString('saucelabs.region', res.region!)]));
       }
       if (res.durationMs != null) {
-        span.addAttributes(OTel.attributes(
-            [OTel.attributeInt('test.duration', res.durationMs!)]));
+        span.addAttributes(OTelAPI.attributes(
+            [OTelAPI.attributeInt('test.duration', res.durationMs!)]));
       }
       if (res.statusCode != null) {
-        span.addAttributes(OTel.attributes(
-            [OTel.attributeInt('http.response.status_code', res.statusCode!)]));
+        span.addAttributes(OTelAPI.attributes([
+          OTelAPI.attributeInt('http.response.status_code', res.statusCode!)
+        ]));
       }
       if (res.errorCode != null) {
-        span.addAttributes(OTel.attributes(
-            [OTel.attributeString('saucelabs.error.code', res.errorCode!)]));
+        span.addAttributes(OTelAPI.attributes(
+            [OTelAPI.attributeString('saucelabs.error.code', res.errorCode!)]));
       }
       final fail = res.errorCode != null ||
           (res.statusCode != null && res.statusCode! >= 400);
       if (fail) {
-        span.addAttributes(OTel.attributes([
-          OTel.attributeString(
-            ErrorResource.errorType.key,
+        span.addAttributes(OTelAPI.attributes([
+          OTelAPI.attributeString(
+            ErrorAttributes.errorType.key,
             res.errorCode ?? 'saucelabs.error',
           )
         ]));
